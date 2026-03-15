@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>EZBolts - Dashboard Thu Ngân</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Tùy chỉnh thanh cuộn cho đẹp */
+        #history::-webkit-scrollbar { width: 6px; }
+        #history::-webkit-scrollbar-track { background: #1f2937; }
+        #history::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        #history::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        .event-item:first-child { animation: highlight 1.5s ease-out; }
+        @keyframes highlight {
+            0% { background-color: rgba(234, 179, 8, 0.2); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans p-6 md:p-10">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-8 border-b-2 border-yellow-500 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-yellow-500">⚡ EZBolts CashDesk System</h1>
+            <span class="bg-green-900 text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hệ thống đang chạy</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-700 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">💰 Số dư hiện tại</h2>
+                    <p id="balance" class="text-5xl font-mono text-green-400 font-bold">0 VNĐ</p>
+                </div>
+                <button onclick="updateBalance()" class="mt-8 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 transition-all px-4 py-2 rounded-lg text-sm font-semibold">
+                    🔄 Làm mới dữ liệu
+                </button>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-700">
+                <h2 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-4">🛒 Giao dịch nhanh</h2>
+                <div class="space-y-3">
+                    <input id="productId" type="text" placeholder="Nhập mã sản phẩm (Vd: BUA-01)" class="w-full bg-gray-900 p-3 rounded-lg border border-gray-700 focus:border-yellow-500 outline-none transition-all">
+                    <input id="price" type="number" placeholder="Nhập giá tiền (VNĐ)" class="w-full bg-gray-900 p-3 rounded-lg border border-gray-700 focus:border-yellow-500 outline-none transition-all">
+                    <button onclick="sellProduct()" class="w-full bg-yellow-500 hover:bg-yellow-600 active:scale-95 transition-all text-black font-black py-4 rounded-xl uppercase tracking-tighter shadow-lg shadow-yellow-900/20">
+                        Xác nhận Thanh toán
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+            <div class="bg-gray-750 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-lg font-bold flex items-center gap-2">📜 Nhật ký sự kiện <span class="text-xs font-normal text-gray-500 font-mono">(Event Store)</span></h2>
+                <span id="eventCount" class="text-xs bg-gray-900 px-2 py-1 rounded text-yellow-500 font-mono">0 events</span>
+            </div>
+            <div id="history" class="divide-y divide-gray-700 max-h-80 overflow-y-auto font-sans">
+                <div class="p-10 text-center text-gray-500">Đang tải lịch sử...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deskId = "11111111-1111-1111-1111-111111111111";
+        const api = "http://localhost:5152/api/CashDesk";
+
+        async function updateBalance() {
+            try {
+                const res = await fetch(`${api}/${deskId}/balance`);
+                const data = await res.json();
+                document.getElementById('balance').innerText = data.currentBalance.toLocaleString() + " VNĐ";
+                loadHistory();
+            } catch (err) {
+                console.error("Lỗi kết nối API:", err);
+            }
+        }
+
+        async function sellProduct() {
+            const productIdInput = document.getElementById('productId');
+            const priceInput = document.getElementById('price');
+            
+            if(!productIdInput.value || !priceInput.value) {
+                alert("Vui lòng nhập đầy đủ mã sản phẩm và giá!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${api}/${deskId}/sell`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        productId: productIdInput.value, 
+                        quantity: 1, 
+                        totalPrice: parseFloat(priceInput.value) 
+                    })
+                });
+
+                if(res.ok) {
+                    productIdInput.value = "";
+                    priceInput.value = "";
+                    updateBalance();
+                } else {
+                    alert("Giao dịch thất bại!");
+                }
+            } catch (err) {
+                alert("Không thể kết nối server!");
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch(`${api}/${deskId}/history`);
+                const data = await res.json();
+                const div = document.getElementById('history');
+                document.getElementById('eventCount').innerText = `${data.length} events`;
+                
+                if (data.length === 0) {
+                    div.innerHTML = `<div class="p-6 text-center text-gray-500">Chưa có giao dịch nào.</div>`;
+                    return;
+                }
+
+                div.innerHTML = data.reverse().map(e => {
+                    const details = JSON.parse(e.eventData);
+                    let icon = "📝";
+                    let title = e.eventType;
+                    let desc = "";
+                    let colorClass = "text-gray-300";
+
+                    if (e.eventType === "CashDeskOpenedEvent") {
+                        icon = "🏁";
+                        title = "Mở quầy thu ngân";
+                        desc = `Số tiền đầu ca: <span class="text-blue-400 font-bold">${details.StartingBalance.toLocaleString()} VNĐ</span>`;
+                    } else if (e.eventType === "ProductSoldEvent") {
+                        icon = "🛒";
+                        title = "Bán sản phẩm";
+                        desc = `Mã: <span class="text-white font-bold">${details.ProductId}</span> | Thu: <span class="text-green-400 font-bold">+${details.TotalPrice.toLocaleString()} VNĐ</span>`;
+                    }
+
+                    return `
+                        <div class="event-item p-4 flex items-start gap-4 transition-colors hover:bg-gray-750">
+                            <div class="text-2xl">${icon}</div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h3 class="font-bold text-sm text-yellow-500 uppercase tracking-tight">${title}</h3>
+                                    <span class="text-[10px] font-mono text-gray-600 bg-black px-2 py-0.5 rounded italic">#${e.id}</span>
+                                </div>
+                                <p class="text-sm ${colorClass}">${desc}</p>
+                                <p class="text-[10px] text-gray-500 mt-2 font-mono italic">${new Date(e.timestamp).toLocaleString('vi-VN')}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                div.innerHTML = `<div class="p-6 text-center text-red-500">Lỗi tải dữ liệu.</div>`;
+            }
+        }
+
+        // Tự động load khi mở trang
+        updateBalance();
+    </script>
+</body>
+</html>
