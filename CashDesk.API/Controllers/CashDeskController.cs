@@ -15,7 +15,7 @@ namespace CashDesk.API.Controllers;
 public class CashDeskController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ApplicationDbContext _dbContext; 
+    private readonly ApplicationDbContext _dbContext;
 
     public CashDeskController(IMediator mediator, ApplicationDbContext dbContext)
     {
@@ -28,12 +28,12 @@ public class CashDeskController : ControllerBase
     public async Task<IActionResult> SellProduct(Guid cashDeskId, [FromBody] SellRequest request)
     {
         var command = new SellProductCommand(cashDeskId, request.ProductId, request.Quantity, request.TotalPrice);
-        
+
         var isSuccess = await _mediator.Send(command);
 
         if (isSuccess)
             return Ok(new { Message = "Bán hàng thành công! Đã lưu Event Sourcing." });
-        
+
         return BadRequest("Lỗi khi bán hàng.");
     }
 
@@ -43,13 +43,13 @@ public class CashDeskController : ControllerBase
     {
         var query = new GetBalanceQuery(cashDeskId);
         var balance = await _mediator.Send(query);
-        
-        return Ok(new 
-        { 
-            CashDeskId = cashDeskId, 
+
+        return Ok(new
+        {
+            CashDeskId = cashDeskId,
             CurrentBalance = balance,
             Unit = "VND",
-            Timestamp = DateTime.UtcNow 
+            Timestamp = DateTime.UtcNow
         });
     }
 
@@ -117,7 +117,7 @@ public class CashDeskController : ControllerBase
         foreach (var e in events)
         {
             var details = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(e.EventData);
-            
+
             if (e.EventType == "CashDeskOpenedEvent")
             {
                 startingBalance = details.GetProperty("StartingBalance").GetDecimal();
@@ -133,8 +133,8 @@ public class CashDeskController : ControllerBase
             }
         }
 
-        return Ok(new 
-        { 
+        return Ok(new
+        {
             CashDeskId = cashDeskId,
             StartingBalance = startingBalance,
             TotalRevenue = totalRevenue,
@@ -148,7 +148,7 @@ public class CashDeskController : ControllerBase
     [HttpGet("{cashDeskId}/history")]
     public async Task<IActionResult> GetHistory(Guid cashDeskId)
     {
-       
+
         var events = await _dbContext.EventStreams
             .Where(e => e.AggregateId == cashDeskId)
             .OrderBy(e => e.Timestamp)
@@ -156,6 +156,50 @@ public class CashDeskController : ControllerBase
 
         return Ok(events);
     }
+
+    
+
+// 🔥 6. HOÀN TIỀN (REFUND)
+[HttpPost("{cashDeskId}/refund")]
+    public async Task<IActionResult> RefundProduct(
+    Guid cashDeskId,
+    [FromBody] RefundRequest request)
+    {
+        try
+        {
+            var command = new RefundProductCommand(
+          cashDeskId,
+          request.ProductId,
+          request.Amount,
+          request.Reason
+      );
+
+            var isSuccess = await _mediator.Send(command);
+
+            if (isSuccess)
+                return Ok(new { Message = "Hoàn tiền thành công!" });
+
+            return BadRequest("Lỗi khi hoàn tiền.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            // 👉 Validation Domain ném lỗi (số dư không đủ)
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Error = "Lỗi hệ thống khi hoàn tiền",
+                Details = ex.Message
+            });
+        }
+    }
 }
 
+public record RefundRequest(
+    string ProductId,
+    decimal Amount,
+    string Reason   
+);
 public record SellRequest(string ProductId, int Quantity, decimal TotalPrice);

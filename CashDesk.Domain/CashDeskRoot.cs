@@ -24,8 +24,33 @@ public class CashDeskRoot
             ApplyEvent(e, isNew: false);
         }
     }
+    private void Apply(ProductRefundedEvent e)
+    {
+        CurrentBalance -= e.RefundAmount;
+    }
+    public void RefundProduct(string productId, decimal amount, string reason)
+    {
+        if (!IsOpen)
+            throw new InvalidOperationException("Quầy chưa mở");
 
-   
+        if (amount <= 0)
+            throw new ArgumentException("Số tiền hoàn không hợp lệ");
+
+        
+        if (CurrentBalance < amount)
+            throw new InvalidOperationException(
+                "Không đủ số dư để hoàn tiền");
+
+        var @event = new ProductRefundedEvent
+        {
+            CashDeskId = Id,
+            ProductId = productId,
+            RefundAmount = amount,
+            Reason = reason
+        };
+
+        ApplyEvent(@event, true);
+    }
     public void OpenDesk(Guid deskId, decimal startingBalance)
     {
         if (startingBalance < 0) throw new InvalidOperationException("Tiền đầu ca không được âm!");
@@ -65,7 +90,8 @@ public class CashDeskRoot
         };
         ApplyEvent(@event, isNew: true);
     }
-    
+
+   
     private void ApplyEvent(IEvent @event, bool isNew)
     {
         
@@ -86,6 +112,7 @@ public class CashDeskRoot
             case CashDeskClosedEvent e:
                 IsOpen = false;
                 break;
+          
         }
 
        
