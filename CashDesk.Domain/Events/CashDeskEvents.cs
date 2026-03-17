@@ -32,3 +32,12 @@ public record ProductRefundedEvent : IEvent
     public required string Reason { get; init; }
     public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
 }
+
+// 4. Sự kiện kết thúc ca
+public record CashDeskClosedEvent : IEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public Guid CashDeskId { get; init; }
+    public decimal FinalBalance { get; init; }
+    public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
+}

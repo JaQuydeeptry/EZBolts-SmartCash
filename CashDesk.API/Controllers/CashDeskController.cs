@@ -53,7 +53,98 @@ public class CashDeskController : ControllerBase
         });
     }
 
-    // 3. XEM LỊCH SỬ EVENT (Event Sourcing)
+    // 3. MỞ CA
+    [HttpPost("{cashDeskId}/open")]
+    public async Task<IActionResult> OpenCashDesk(Guid cashDeskId, [FromQuery] decimal startingBalance = 100000)
+    {
+        try
+        {
+            var command = new OpenCashDeskCommand(cashDeskId, startingBalance);
+            var isSuccess = await _mediator.Send(command);
+
+            if (isSuccess)
+                return Ok(new { Message = $"Đã mở ca thành công với số vốn {startingBalance} VNĐ" });
+
+            return BadRequest("Lỗi khi mở ca.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Error = "Lỗi hệ thống khi mở ca", Details = ex.Message });
+        }
+    }
+
+    // 4. KẾT THÚC CA
+    [HttpPost("{cashDeskId}/close")]
+    public async Task<IActionResult> CloseCashDesk(Guid cashDeskId)
+    {
+        try
+        {
+            var command = new CloseCashDeskCommand(cashDeskId);
+            var isSuccess = await _mediator.Send(command);
+
+            if (isSuccess)
+                return Ok(new { Message = "Đã kết thúc ca thành công! Quầy thu ngân đã được khóa." });
+
+            return BadRequest("Lỗi khi kết thúc ca.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Error = "Lỗi hệ thống khi kết thúc ca", Details = ex.Message });
+        }
+    }
+
+    // 5. BÁO CÁO: Tiền vốn vs Doanh thu
+    [HttpGet("{cashDeskId}/report")]
+    public async Task<IActionResult> GetReport(Guid cashDeskId)
+    {
+        var events = await _dbContext.EventStreams
+            .Where(e => e.AggregateId == cashDeskId)
+            .OrderBy(e => e.Timestamp)
+            .ToListAsync();
+
+        decimal startingBalance = 0;
+        decimal totalRevenue = 0;
+        bool isOpen = false;
+
+        foreach (var e in events)
+        {
+            var details = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(e.EventData);
+            
+            if (e.EventType == "CashDeskOpenedEvent")
+            {
+                startingBalance = details.GetProperty("StartingBalance").GetDecimal();
+                isOpen = true;
+            }
+            else if (e.EventType == "ProductSoldEvent")
+            {
+                totalRevenue += details.GetProperty("TotalPrice").GetDecimal();
+            }
+            else if (e.EventType == "CashDeskClosedEvent")
+            {
+                isOpen = false;
+            }
+        }
+
+        return Ok(new 
+        { 
+            CashDeskId = cashDeskId,
+            StartingBalance = startingBalance,
+            TotalRevenue = totalRevenue,
+            CurrentBalance = startingBalance + totalRevenue,
+            IsOpen = isOpen,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+
+    // 5. XEM LỊCH SỬ EVENT (Event Sourcing)
     [HttpGet("{cashDeskId}/history")]
     public async Task<IActionResult> GetHistory(Guid cashDeskId)
     {

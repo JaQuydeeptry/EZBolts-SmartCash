@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>EZBolts - Dashboard Thu Ngân</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Tùy chỉnh thanh cuộn cho đẹp */
         #history::-webkit-scrollbar { width: 6px; }
@@ -19,13 +20,21 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white font-sans p-6 md:p-10">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <div class="flex items-center justify-between mb-8 border-b-2 border-yellow-500 pb-4">
             <h1 class="text-3xl md:text-4xl font-bold text-yellow-500">⚡ EZBolts CashDesk System</h1>
-            <span class="bg-green-900 text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hệ thống đang chạy</span>
+            <div class="flex items-center gap-4">
+                <span id="status" class="bg-green-900 text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hệ thống đang chạy</span>
+                <button onclick="openDesk()" id="openBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    ▶️ Bắt đầu ca
+                </button>
+                <button onclick="closeDesk()" id="closeBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    🚪 Kết thúc ca
+                </button>
+            </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-700 flex flex-col justify-between">
                 <div>
                     <h2 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">💰 Số dư hiện tại</h2>
@@ -46,6 +55,14 @@
                     </button>
                 </div>
             </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-700">
+                <h2 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-4">📊 Báo cáo ca</h2>
+                <canvas id="reportChart" width="200" height="200"></canvas>
+                <div class="mt-4 text-center">
+                    <p id="reportText" class="text-sm text-gray-300">Đang tải báo cáo...</p>
+                </div>
+            </div>
         </div>
 
         <div class="mt-10 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
@@ -62,12 +79,14 @@
     <script>
         const deskId = "11111111-1111-1111-1111-111111111111";
         const api = "http://localhost:5152/api/CashDesk";
+        let chart;
 
         async function updateBalance() {
             try {
                 const res = await fetch(`${api}/${deskId}/balance`);
                 const data = await res.json();
                 document.getElementById('balance').innerText = data.currentBalance.toLocaleString() + " VNĐ";
+                loadReport();
                 loadHistory();
             } catch (err) {
                 console.error("Lỗi kết nối API:", err);
@@ -106,6 +125,113 @@
             }
         }
 
+        async function openDesk() {
+            const startingBalance = prompt("Nhập số vốn bắt đầu ca (VNĐ)", "100000");
+            if (startingBalance === null) return;
+            const balance = parseFloat(startingBalance);
+            if (isNaN(balance) || balance < 0) {
+                alert("Vui lòng nhập số tiền hợp lệ!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${api}/${deskId}/open?startingBalance=${balance}`, {
+                    method: 'POST'
+                });
+
+                if (res.ok) {
+                    alert("Mở ca thành công!");
+                    updateBalance();
+                } else {
+                    alert("Lỗi khi mở ca!");
+                }
+            } catch (err) {
+                alert("Không thể kết nối server!");
+            }
+        }
+
+        async function closeDesk() {
+            if (!confirm("Bạn có chắc muốn kết thúc ca? Sau khi kết thúc, quầy sẽ bị khóa và không thể thực hiện giao dịch nữa.")) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${api}/${deskId}/close`, {
+                    method: 'POST'
+                });
+
+                if(res.ok) {
+                    alert("Đã kết thúc ca thành công!");
+                    updateBalance();
+                    document.getElementById('status').innerText = "QUẦY ĐÃ ĐÓNG";
+                    document.getElementById('status').className = "bg-red-900 text-red-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider";
+                    document.getElementById('closeBtn').style.display = 'none';
+                } else {
+                    alert("Lỗi khi kết thúc ca!");
+                }
+            } catch (err) {
+                alert("Không thể kết nối server!");
+            }
+        }
+
+        async function loadReport() {
+            try {
+                const res = await fetch(`${api}/${deskId}/report`);
+                const data = await res.json();
+                
+                // Cập nhật trạng thái
+                if (data.isOpen) {
+                    document.getElementById('status').innerText = "QUẦY ĐANG MỞ";
+                    document.getElementById('status').className = "bg-green-900 text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider";
+                    document.getElementById('closeBtn').style.display = 'inline-block';
+                    document.getElementById('openBtn').style.display = 'none';
+                } else {
+                    document.getElementById('status').innerText = "QUẦY ĐÃ ĐÓNG";
+                    document.getElementById('status').className = "bg-red-900 text-red-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider";
+                    document.getElementById('closeBtn').style.display = 'none';
+                    document.getElementById('openBtn').style.display = 'inline-block';
+                }
+
+                // Vẽ biểu đồ
+                const ctx = document.getElementById('reportChart').getContext('2d');
+                if (chart) {
+                    chart.destroy();
+                }
+                chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Tiền vốn', 'Doanh thu'],
+                        datasets: [{
+                            data: [data.startingBalance, data.totalRevenue],
+                            backgroundColor: ['#3B82F6', '#10B981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#D1D5DB'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('reportText').innerHTML = `
+                    <div class="text-xs">
+                        <div>Tiền vốn: <span class="text-blue-400 font-bold">${data.startingBalance.toLocaleString()} VNĐ</span></div>
+                        <div>Doanh thu: <span class="text-green-400 font-bold">${data.totalRevenue.toLocaleString()} VNĐ</span></div>
+                        <div>Tổng: <span class="text-yellow-400 font-bold">${data.currentBalance.toLocaleString()} VNĐ</span></div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error("Lỗi tải báo cáo:", err);
+            }
+        }
+
         async function loadHistory() {
             try {
                 const res = await fetch(`${api}/${deskId}/history`);
@@ -133,6 +259,10 @@
                         icon = "🛒";
                         title = "Bán sản phẩm";
                         desc = `Mã: <span class="text-white font-bold">${details.ProductId}</span> | Thu: <span class="text-green-400 font-bold">+${details.TotalPrice.toLocaleString()} VNĐ</span>`;
+                    } else if (e.eventType === "CashDeskClosedEvent") {
+                        icon = "🚪";
+                        title = "Kết thúc ca";
+                        desc = `Số dư cuối ca: <span class="text-red-400 font-bold">${details.FinalBalance.toLocaleString()} VNĐ</span>`;
                     }
 
                     return `
