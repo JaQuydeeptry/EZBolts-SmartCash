@@ -87,4 +87,4 @@ C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\ob
 C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\obj\Debug\net9.0\CashDesk.API.pdb
 C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\obj\Debug\net9.0\CashDesk.API.genruntimeconfig.cache
 C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\obj\Debug\net9.0\ref\CashDesk.API.dll
-C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\obj\Debug\net9.0\compressed\ek10u5icgu-ap4u5lbk5f.gz
+C:\Users\WINDOWS\OneDrive\ProJectCaskdesk\EZBolts.CashDeskSystem\CashDesk.API\obj\Debug\net9.0\compressed\ek10u5icgu-rtqrtfqiic.gz

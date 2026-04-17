@@ -5,21 +5,33 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Quầy Thu Ngân - Nhóm 2</title>
+    <title>EZBolts POS - Perfect v12.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
         #history::-webkit-scrollbar, #holdOrdersList::-webkit-scrollbar { width: 6px; }
         #history::-webkit-scrollbar-track, #holdOrdersList::-webkit-scrollbar-track { background: #1f2937; }
         #history::-webkit-scrollbar-thumb, #holdOrdersList::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        
         #loginOverlay, #qrModal, #regModal, #zReportModal, #holdModal { backdrop-filter: blur(12px); transition: all 0.4s ease; }
         
         /* 🖨️ CSS IN ẤN ĐA NĂNG */
         .print-area { display: none; } 
         @media print {
             body > *:not(.print-active) { display: none !important; }
-            .print-active { display: block !important; width: 80mm; margin: 0 auto; padding: 4mm; background: white; color: black; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.4; }
+            .print-active { 
+                display: block !important; 
+                width: 80mm; 
+                margin: 0 auto; 
+                padding: 4mm; 
+                background: white; 
+                color: black; 
+                font-family: 'JetBrains Mono', monospace; 
+                font-size: 13px; 
+                line-height: 1.4; 
+            }
             .flex-between { display: flex; justify-content: space-between; width: 100%; gap: 5px; }
             .text-center { text-align: center; width: 100%; }
             .dashed-line { border-bottom: 1px dashed black; margin: 8px 0; }
@@ -32,16 +44,16 @@
     <div id="loginOverlay" class="fixed inset-0 z-[100] bg-gray-900/95 flex items-center justify-center">
         <div class="bg-gray-800 p-8 rounded-3xl border border-yellow-500/50 shadow-2xl w-full max-w-md text-center">
             <h2 class="text-2xl font-black text-yellow-500 uppercase mb-6 italic tracking-widest">EZBolts Security</h2>
-            <div class="relative mb-6">
-                <input id="staffPin" type="password" maxlength="4" placeholder="MÃ PIN" class="w-full bg-gray-900 p-4 rounded-xl border border-gray-700 focus:border-yellow-500 outline-none text-center text-2xl tracking-[1em] text-yellow-500 transition-all">
-                <button onclick="togglePinVisibility()" class="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-yellow-500 focus:outline-none transition-all">
+            <div class="relative mb-6 flex items-center">
+                <input id="staffPin" type="password" maxlength="4" placeholder="MÃ PIN" class="w-full bg-gray-900 p-4 pr-12 rounded-xl border border-gray-700 focus:border-yellow-500 outline-none text-center text-2xl tracking-[1em] text-yellow-500 transition-all p-key" data-key="pinPlh">
+                <button onclick="togglePinVisibility()" class="absolute right-4 text-gray-500 hover:text-yellow-500 focus:outline-none transition-all">
                     <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </button>
             </div>
-            <button onclick="handleLogin()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black py-4 rounded-xl uppercase transition-all active:scale-95 shadow-lg">Đăng nhập</button>
+            <button onclick="handleLogin()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black py-4 rounded-xl uppercase transition-all shadow-lg t-key" data-key="loginBtn">Đăng nhập</button>
         </div>
     </div>
 
@@ -73,7 +85,7 @@
     <div id="holdModal" class="fixed inset-0 z-[115] bg-black/80 flex items-center justify-center hidden p-4">
         <div class="bg-gray-800 p-6 rounded-3xl border border-blue-500 shadow-2xl w-full max-w-md flex flex-col max-h-[80vh]">
             <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-4">
-                <h3 class="text-xl font-black text-blue-400 uppercase">Danh sách đơn chờ</h3>
+                <h3 class="text-xl font-black text-blue-400 uppercase t-key" data-key="holdTitle">Danh sách đơn chờ</h3>
                 <button onclick="closeHoldModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
             <div id="holdOrdersList" class="space-y-3 overflow-y-auto pr-2 flex-1"></div>
@@ -90,10 +102,7 @@
                 <div class="flex justify-between text-gray-400"><span>Tổng hoàn trả:</span><span id="zHoan" class="text-red-400 font-bold"></span></div>
                 <div class="flex justify-between text-gray-400"><span>Tổng rút quỹ:</span><span id="zRut" class="text-yellow-400 font-bold"></span></div>
                 <div class="dashed-line my-4 border-gray-600"></div>
-                <div class="flex justify-between text-lg font-black uppercase">
-                    <span class="text-gray-300">Tiền mặt KẾT CA:</span>
-                    <span id="zThucTe" class="text-white"></span>
-                </div>
+                <div class="flex justify-between text-lg font-black uppercase"><span class="text-gray-300">Tiền mặt KẾT CA:</span><span id="zThucTe" class="text-white"></span></div>
             </div>
             <div class="flex gap-3 mt-8">
                 <button onclick="closeZReportModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-4 rounded-xl font-bold uppercase text-xs">Hủy bỏ</button>
@@ -116,10 +125,8 @@
         <div class="flex-between"><span><span id="prQty"></span> x <span id="prPrice"></span>đ</span><span style="font-weight: bold;" id="prSubtotal"></span></div>
         <div class="dashed-line"></div>
         <div class="flex-between"><span>Giảm VIP:</span><span>-<span id="prDiscount"></span>đ</span></div>
-        
         <div class="flex-between text-[11px] text-gray-600 mt-2"><span>Tiền mặt:</span><span id="prCash">0đ</span></div>
         <div class="flex-between text-[11px] text-gray-600"><span>Chuyển khoản QR:</span><span id="prQR">0đ</span></div>
-        
         <div class="flex-between" style="font-size: 18px; font-weight: bold; margin-top: 5px; border-top: 1px solid black; padding-top: 5px;"><span>TỔNG:</span><span id="prTotal"></span></div>
         <div class="text-center" style="margin-top: 20px;"><p style="font-weight: bold; font-size: 14px;">Cảm ơn quý khách!</p></div>
     </div>
@@ -140,41 +147,41 @@
         <div class="flex-between" style="font-size: 16px; font-weight: bold;"><span>TIỀN KẾT CA:</span><span id="pzThucTe"></span></div>
         <div class="dashed-line"></div>
         <div style="display: flex; justify-content: space-between; margin-top: 30px; font-weight: bold; text-align: center;">
-            <div style="width: 45%;">Thu ngân ký</div><div style="width: 45%;">Quản lý ký</div>
+            <div style="width: 45%;">Thu ngân ký</div>
+            <div style="width: 45%;">Quản lý ký</div>
         </div>
     </div>
 
     <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between mb-6 border-b-2 border-yellow-500 pb-4">
             <div>
-                <h1 class="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">Quầy Thu Ngân</h1>
+                <h1 class="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">EZBolts POS v12.3</h1>
                 <p id="currentUserDisplay" class="text-[10px] text-blue-400 font-mono"></p>
             </div>
             <div class="flex items-center gap-4">
                 <div id="networkStatus" class="bg-green-600 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase flex items-center gap-1.5 shadow-md">
                     <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> ONLINE
                 </div>
-                
-                <button id="btnOpenDesk" onclick="openCashDesk()" class="hidden bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg animate-pulse">🔓 MỞ QUẦY</button>
-                <button onclick="toggleLang()" class="bg-gray-800 border border-gray-700 px-3 py-1 rounded-full text-[10px] font-bold text-yellow-500 uppercase">🌐 <span id="langLabel">English</span></button>
+                <button id="btnOpenDesk" onclick="openCashDesk()" class="hidden bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg animate-pulse t-key" data-key="openDesk">🔓 MỞ QUẦY</button>
+                <button onclick="toggleLang()" class="bg-gray-800 border border-gray-700 px-3 py-1 rounded-full text-[10px] font-bold text-yellow-500 uppercase">🌐 <span id="langLabel">ENGLISH</span></button>
                 <button onclick="location.reload()" class="text-gray-500 hover:text-white text-[10px] font-bold uppercase">Logout</button>
-                <button id="btnCloseDesk" onclick="preCloseCashDesk()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg">🔒 KẾT CA</button>
+                <button id="btnCloseDesk" onclick="preCloseCashDesk()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg t-key" data-key="closeDesk">🔒 KẾT CA</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-6">
                 <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 flex flex-col justify-between relative overflow-hidden">
-                    <div id="offlineWarningBg" class="hidden absolute top-0 right-0 bg-red-600 text-white px-8 py-1 rotate-45 translate-x-6 translate-y-3 font-black text-[10px] shadow-lg">OFFLINE MODE</div>
+                    <div id="offlineWarningBg" class="hidden absolute top-0 right-0 bg-red-600 text-white px-8 py-1 rotate-45 translate-x-6 translate-y-3 font-black text-[10px] shadow-lg">OFFLINE</div>
                     <div>
-                        <h2 class="text-gray-500 text-xs font-bold uppercase mb-2">Tiền két hiện tại</h2>
+                        <h2 class="text-gray-500 text-xs font-bold uppercase mb-2 t-key" data-key="balance">Tiền két hiện tại</h2>
                         <p id="balance" class="text-5xl font-mono text-green-400 font-bold tracking-tighter transition-all duration-300">0 VNĐ</p>
                     </div>
-                    <button id="btnRefresh" onclick="updateBalance()" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg text-[10px] font-bold uppercase">🔄 Làm mới dữ liệu</button>
+                    <button id="btnRefresh" onclick="updateBalance()" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg text-[10px] font-bold uppercase t-key" data-key="refresh">🔄 Làm mới dữ liệu</button>
                 </div>
                 <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
                     <div class="bg-gray-750 px-4 py-3 border-b border-gray-700 flex justify-between items-center text-xs">
-                        <h2 class="font-bold uppercase tracking-widest text-gray-400">Nhật ký</h2>
+                        <h2 class="font-bold uppercase tracking-widest text-gray-400 t-key" data-key="logTitle">Nhật ký</h2>
                         <button onclick="exportToCSV()" class="bg-green-700 px-2 py-1 rounded font-bold uppercase text-[9px]">CSV</button>
                     </div>
                     <div id="history" class="divide-y divide-gray-700 max-h-[400px] overflow-y-auto font-mono text-[10px]"></div>
@@ -183,75 +190,79 @@
 
             <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-yellow-500/30 flex flex-col">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-yellow-500 text-sm font-black uppercase">Bán sản phẩm</h2>
+                    <h2 class="text-yellow-500 text-sm font-black uppercase t-key" data-key="sellTitle">Bán sản phẩm</h2>
                     <div class="flex items-center gap-2">
                         <span id="vipBadge" class="hidden bg-yellow-600 text-white text-[10px] px-2 py-1 rounded font-black italic uppercase">VIP</span>
-                        <button onclick="openHoldModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase transition-all flex items-center gap-1 shadow-md">
-                            <span>📋 Đơn chờ</span><span id="holdCount" class="bg-red-500 px-1.5 py-0.5 rounded-full text-[9px]">0</span>
+                        <button onclick="openHoldModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase flex items-center gap-1 shadow-md">
+                            <span class="t-key" data-key="holdList">📋 Đơn chờ</span><span id="holdCount" class="bg-red-500 px-1.5 py-0.5 rounded-full text-[9px]">0</span>
                         </button>
                     </div>
                 </div>
                 <div class="space-y-4 flex-1">
-                    
                     <div class="relative">
-                        <input id="customerPhone" oninput="checkVIP(); updateDiscountUI();" type="text" placeholder="SĐT Khách hàng" class="w-full bg-gray-900 p-4 rounded-xl border border-gray-700 focus:border-blue-500 outline-none text-sm transition-all">
+                        <input id="customerPhone" oninput="checkVIP(); updateDiscountUI();" type="text" placeholder="SĐT Khách hàng" class="w-full bg-gray-900 p-4 rounded-xl border border-gray-700 focus:border-blue-500 outline-none text-sm p-key" data-key="phonePlh">
                         <p id="customerNameDisplay" class="absolute right-4 top-4 text-blue-400 text-[11px] font-bold hidden italic"></p>
                         <button id="btnOpenReg" onclick="openRegModal()" class="hidden absolute right-2 top-2 bg-blue-600 hover:bg-blue-500 text-[9px] px-3 py-2 rounded-lg font-bold uppercase shadow-lg transition-all">+ VIP</button>
                     </div>
-                    <input id="productId" oninput="this.value = this.value.toUpperCase(); if(this.value.length >= 4) autoFillProduct()" type="text" placeholder="MÃ SẢN PHẨM" class="w-full bg-gray-900 p-4 rounded-xl border border-gray-700 focus:border-yellow-500 outline-none font-bold text-yellow-500 uppercase transition-all">
+                    
+                    <input id="productId" oninput="this.value = this.value.toUpperCase(); if(this.value.length >= 4) autoFillProduct()" type="text" placeholder="MÃ SẢN PHẨM" class="w-full bg-gray-900 p-4 rounded-xl border border-gray-700 focus:border-yellow-500 outline-none font-bold text-yellow-500 uppercase p-key" data-key="prodPlh">
                     <p id="productNameDisplay" class="text-green-400 text-xs font-bold hidden px-2"></p>
+                    
                     <div class="flex gap-2">
                         <input id="quantity" oninput="updateDiscountUI()" type="number" min="1" value="1" class="w-1/4 bg-gray-900 p-4 rounded-xl border border-gray-700 text-center font-bold text-yellow-500 outline-none">
-                        <input id="price" oninput="updateDiscountUI()" type="number" placeholder="Giá tiền" class="w-3/4 bg-gray-900 p-4 rounded-xl border border-gray-700 outline-none font-bold">
+                        <input id="price" oninput="updateDiscountUI()" type="number" placeholder="Giá tiền" class="w-3/4 bg-gray-900 p-4 rounded-xl border border-gray-700 outline-none font-bold p-key" data-key="pricePlh">
                     </div>
-                    <div id="discountInfo" class="hidden bg-blue-900/40 p-3 rounded-xl text-xs text-blue-300 border border-blue-500/30 text-center italic font-bold">✨ VIP ĐÃ GIẢM 10%</div>
+                    
+                    <div id="discountInfo" class="hidden bg-blue-900/40 p-3 rounded-xl text-xs text-blue-300 border border-blue-500/30 text-center italic font-bold t-key" data-key="vipOff">✨ VIP ĐÃ GIẢM 10%</div>
                     
                     <div class="bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-3 mt-4">
                         <div class="flex justify-between text-xs font-bold text-gray-400 uppercase border-b border-gray-700 pb-2">
-                            <span>Tổng phải thu:</span>
+                            <span class="t-key" data-key="totalReq">Tổng phải thu:</span>
                             <span id="splitTotalDisplay" class="text-yellow-500 text-sm font-black">0 VNĐ</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-gray-400 w-1/3">Tiền mặt:</span>
-                            <input id="cashAmount" type="number" placeholder="Khách đưa..." class="w-2/3 bg-gray-800 p-3 rounded-lg border border-gray-600 focus:border-yellow-500 outline-none text-white font-bold text-right transition-all" oninput="calculateSplit()">
+                            <span class="text-xs font-bold text-gray-400 w-1/3 t-key" data-key="cashGiven">Tiền mặt:</span>
+                            <input id="cashAmount" type="number" placeholder="Khách đưa..." class="w-2/3 bg-gray-800 p-3 rounded-lg border border-gray-600 focus:border-yellow-500 outline-none text-white font-bold text-right p-key" data-key="cashPlh" oninput="calculateSplit()">
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-gray-400 w-1/3">Cần quét QR:</span>
+                            <span class="text-xs font-bold text-gray-400 w-1/3 t-key" data-key="qrReq">Cần quét QR:</span>
                             <input id="qrAmountInput" type="number" readonly class="w-2/3 bg-gray-800 p-3 rounded-lg border border-gray-600 outline-none text-green-400 font-bold text-right" value="0">
                         </div>
+                        
                         <div class="flex gap-2 pt-2">
-                            <button onclick="fillCash(1)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded text-[10px] font-bold text-gray-400 border border-gray-700">Đủ tiền mặt</button>
-                            <button onclick="fillCash(0)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded text-[10px] font-bold text-gray-400 border border-gray-700">Full quét QR</button>
+                            <button onclick="fillCash(1)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-[10px] font-bold text-gray-400 border border-gray-700 uppercase transition-all t-key" data-key="fullCash">Đủ tiền mặt</button>
+                            <button onclick="fillCash(0)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-[10px] font-bold text-gray-400 border border-gray-700 uppercase transition-all t-key" data-key="fullQR">Full quét QR</button>
                         </div>
                     </div>
 
                     <div class="flex gap-2 pt-2">
-                        <button onclick="holdOrder()" class="w-1/3 bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-xl text-[10px] uppercase transition-all shadow-md">⏸️ Lưu Tạm</button>
-                        <button id="btnMainCheckout" onclick="sellProduct()" class="w-2/3 bg-yellow-500 hover:bg-yellow-600 text-black font-black py-4 rounded-xl uppercase transition-all text-lg shadow-xl active:scale-95">Thanh toán</button>
+                        <button onclick="holdOrder()" class="w-1/3 bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-xl text-[10px] uppercase shadow-md t-key" data-key="holdBtn">⏸️ Lưu Tạm</button>
+                        <button id="btnMainCheckout" onclick="sellProduct()" class="w-2/3 bg-yellow-500 hover:bg-yellow-600 text-black font-black py-4 rounded-xl uppercase shadow-xl active:scale-95 t-key" data-key="checkoutBtn">Thanh toán</button>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
                 <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 text-center">
-                    <h2 class="text-gray-500 text-xs font-bold uppercase mb-4">Doanh thu</h2>
+                    <h2 class="text-gray-500 text-xs font-bold uppercase mb-4 t-key" data-key="chartTitle">Doanh thu</h2>
                     <div class="relative h-44 flex justify-center"><canvas id="reportChart"></canvas></div>
                     <div id="chartStats" class="mt-4 text-[10px] font-mono text-gray-400">Vốn: <span id="lblStarting">0</span> | Thu: <span id="lblRevenue">0</span></div>
                 </div>
+                
                 <div class="bg-gray-800 p-6 rounded-2xl border border-red-900/30">
-                    <h2 class="text-red-400 text-xs font-bold uppercase mb-4 flex items-center gap-2">🔙 Hoàn tiền</h2>
+                    <h2 class="text-red-400 text-xs font-bold uppercase mb-4 flex items-center gap-2 t-key" data-key="refundLink">🔙 Hoàn tiền</h2>
                     <div class="space-y-3">
                         <input id="refundProductId" oninput="this.value = this.value.toUpperCase()" type="text" placeholder="Mã sản phẩm" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 text-xs outline-none">
                         <input id="refundAmount" type="number" placeholder="Số tiền" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 text-xs outline-none">
-                        <input id="refundReason" type="text" placeholder="Lý do hoàn trả" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 text-xs outline-none italic">
-                        <button onclick="handleRefund()" class="w-full bg-red-600 hover:bg-red-500 py-3 rounded-xl text-[10px] font-bold uppercase transition-all">Xác nhận hoàn</button>
+                        <button onclick="handleRefund()" class="w-full bg-red-600 hover:bg-red-500 py-3 rounded-xl text-[10px] font-bold uppercase t-key" data-key="confirmRef">Xác nhận hoàn</button>
                     </div>
                 </div>
+                
                 <div class="bg-gray-800 p-6 rounded-2xl border border-blue-900/30">
-                    <h2 class="text-blue-400 text-xs font-bold uppercase mb-4 flex items-center gap-2">💸 Rút quỹ</h2>
+                    <h2 class="text-blue-400 text-xs font-bold uppercase mb-4 flex items-center gap-2 t-key" data-key="withdrawBtn">💸 Rút quỹ</h2>
                     <div class="space-y-3">
                         <input id="withdrawAmount" type="number" placeholder="Số tiền rút" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 text-xs outline-none">
-                        <button onclick="handleWithdraw()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-[10px] font-bold uppercase transition-all">Xác nhận rút</button>
+                        <button onclick="handleWithdraw()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-[10px] font-bold uppercase t-key" data-key="confirmWit">Xác nhận rút</button>
                     </div>
                 </div>
             </div>
@@ -261,21 +272,62 @@
     <audio id="soundTing" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
 
     <script>
-        const deskId = "11111111-1111-1111-1111-111111111111", api = "http://localhost:5152/api/CashDesk";
-        let myChartInstance = null, globalEventData = [], isVIP = false, currentUser = null, currentLang = 'vi';
+        const deskId = "11111111-1111-1111-1111-111111111111";
+        // NHỚ ĐỔI LẠI LINK NGROK VÀO ĐÂY NẾU BRO MUỐN CHẠY TRÊN NETLIFY
+        const api = "http://localhost:5152/api/CashDesk"; 
+        
+        let myChartInstance = null;
+        let globalEventData = [];
+        let isVIP = false;
+        let currentUser = null;
+        let currentLang = 'vi';
 
         const STAFF_DATA = { "2026": "Dương Gia Huy (Admin)", "1234": "Trần Quốc Khánh (Staff)" };
         let CUSTOMER_DATA = { "0939018377": "Anh Dương Gia Huy", "0909109094": "Chị Nguyễn Mai Anh", "0939305529": "Anh Trần Quốc Khánh" };
-        const BANK_ID = "MB", ACCOUNT_NO = "0939018377";
+        const BANK_ID = "MB";
+        const ACCOUNT_NO = "0939018377";
 
         let heldOrders = JSON.parse(localStorage.getItem('ezbolts_held_orders')) || [];
         let offlineQueue = JSON.parse(localStorage.getItem('ezbolts_offline_queue')) || [];
 
-        function toggleLang() { currentLang = currentLang === 'vi' ? 'en' : 'vi'; document.getElementById('langLabel').innerText = currentLang === 'vi' ? "English" : "Tiếng Việt"; }
+        // 🌟 TỪ ĐIỂN SONG NGỮ (Đã bổ sung 2 nút tính nhanh) 🌟
+        const LANG_DICT = {
+            vi: { 
+                loginBtn: "Đăng nhập", pinPlh: "MÃ PIN", openDesk: "🔓 MỞ QUẦY", closeDesk: "🔒 KẾT CA", 
+                balance: "Tiền két hiện tại", refresh: "🔄 LÀM MỚI DỮ LIỆU", sellTitle: "Bán sản phẩm", 
+                chartTitle: "Doanh thu", logTitle: "Nhật ký", holdList: "📋 Đơn chờ", holdTitle: "Danh sách đơn chờ", 
+                holdBtn: "⏸️ Lưu Tạm", checkoutBtn: "Thanh toán", refundLink: "🔙 Hoàn tiền", withdrawBtn: "💸 Rút quỹ", 
+                confirmRef: "Xác nhận hoàn", confirmWit: "Xác nhận rút", phonePlh: "SĐT Khách hàng", prodPlh: "MÃ SẢN PHẨM", 
+                pricePlh: "Giá tiền", vipOff: "✨ VIP ĐÃ GIẢM 10%", totalReq: "Tổng phải thu:", cashGiven: "Tiền mặt:", 
+                qrReq: "Cần quét QR:", cashPlh: "Khách đưa...", fullCash: "Đủ tiền mặt", fullQR: "Full quét QR", nextLang: "ENGLISH" 
+            },
+            en: { 
+                loginBtn: "Login", pinPlh: "PIN CODE", openDesk: "🔓 OPEN DESK", closeDesk: "🔒 CLOSE DESK", 
+                balance: "Drawer Balance", refresh: "🔄 REFRESH DATA", sellTitle: "Sales Checkout", 
+                chartTitle: "Revenue Stats", logTitle: "System Logs", holdList: "📋 Held List", holdTitle: "Held Orders", 
+                holdBtn: "⏸️ Hold Order", checkoutBtn: "Checkout", refundLink: "🔙 Refund", withdrawBtn: "💸 Withdraw", 
+                confirmRef: "Confirm Refund", confirmWit: "Confirm Withdraw", phonePlh: "Customer Phone", prodPlh: "PRODUCT CODE", 
+                pricePlh: "Price", vipOff: "✨ VIP 10% OFF", totalReq: "Total Due:", cashGiven: "Cash Paid:", 
+                qrReq: "QR Required:", cashPlh: "Cash given...", fullCash: "Exact Cash", fullQR: "Full QR Scan", nextLang: "TIẾNG VIỆT" 
+            }
+        };
 
-        // MẮT THẦN ĐĂNG NHẬP
+        function toggleLang() { 
+            currentLang = currentLang === 'vi' ? 'en' : 'vi'; 
+            document.getElementById('langLabel').innerText = LANG_DICT[currentLang].nextLang; 
+            document.querySelectorAll('.t-key').forEach(el => { 
+                const key = el.getAttribute('data-key'); 
+                if(LANG_DICT[currentLang][key]) el.innerText = LANG_DICT[currentLang][key]; 
+            });
+            document.querySelectorAll('.p-key').forEach(el => { 
+                const key = el.getAttribute('data-key'); 
+                if(LANG_DICT[currentLang][key]) el.placeholder = LANG_DICT[currentLang][key]; 
+            });
+        }
+
         function togglePinVisibility() {
-            const pinInput = document.getElementById('staffPin'); const eyeIcon = document.getElementById('eyeIcon');
+            const pinInput = document.getElementById('staffPin'); 
+            const eyeIcon = document.getElementById('eyeIcon');
             if (pinInput.type === 'password') {
                 pinInput.type = 'text'; 
                 eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />`;
@@ -287,89 +339,278 @@
 
         function handleLogin() {
             const pin = document.getElementById('staffPin').value;
-            if (STAFF_DATA[pin]) { currentUser = STAFF_DATA[pin]; document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('currentUserDisplay').innerText = `👤 CASHIER: ${currentUser.toUpperCase()}`; updateBalance(); } else { alert("Sai mã PIN!"); }
+            if (STAFF_DATA[pin]) { 
+                currentUser = STAFF_DATA[pin]; 
+                document.getElementById('loginOverlay').classList.add('hidden'); 
+                document.getElementById('currentUserDisplay').innerText = `👤 CASHIER: ${currentUser.toUpperCase()}`; 
+                updateBalance(); 
+            } else { 
+                alert("Sai mã PIN!"); 
+            }
         }
 
-        function checkVIP() { const phone = document.getElementById('customerPhone').value.trim(); const badge = document.getElementById('vipBadge'), nameDisplay = document.getElementById('customerNameDisplay'), btnReg = document.getElementById('btnOpenReg'); if (CUSTOMER_DATA[phone]) { isVIP = true; badge.classList.remove('hidden'); btnReg.classList.add('hidden'); nameDisplay.innerText = `✨ ${CUSTOMER_DATA[phone]}`; nameDisplay.classList.remove('hidden'); } else { isVIP = false; badge.classList.add('hidden'); nameDisplay.classList.add('hidden'); if(phone.length >= 10) btnReg.classList.remove('hidden'); else btnReg.classList.add('hidden'); } }
-        function openRegModal() { document.getElementById('regPhone').value = document.getElementById('customerPhone').value; document.getElementById('regModal').classList.remove('hidden'); }
-        function closeRegModal() { document.getElementById('regModal').classList.add('hidden'); }
-        function handleRegisterMember() { const name = document.getElementById('regName').value.trim(); if(!name) return; CUSTOMER_DATA[document.getElementById('regPhone').value] = name; closeRegModal(); checkVIP(); updateDiscountUI(); }
+        function checkVIP() { 
+            const phone = document.getElementById('customerPhone').value.trim(); 
+            const badge = document.getElementById('vipBadge');
+            const nameDisplay = document.getElementById('customerNameDisplay');
+            const btnReg = document.getElementById('btnOpenReg'); 
 
-        // TÍNH CHIA TIỀN
+            if (CUSTOMER_DATA[phone]) { 
+                isVIP = true; 
+                badge.classList.remove('hidden'); 
+                btnReg.classList.add('hidden');
+                nameDisplay.innerText = `✨ ${CUSTOMER_DATA[phone]}`; 
+                nameDisplay.classList.remove('hidden'); 
+            } else { 
+                isVIP = false; 
+                badge.classList.add('hidden'); 
+                nameDisplay.classList.add('hidden'); 
+                if(phone.length >= 10) btnReg.classList.remove('hidden'); 
+                else btnReg.classList.add('hidden');
+            } 
+        }
+
+        function openRegModal() { 
+            document.getElementById('regPhone').value = document.getElementById('customerPhone').value; 
+            document.getElementById('regModal').classList.remove('hidden'); 
+        }
+        
+        function closeRegModal() { 
+            document.getElementById('regModal').classList.add('hidden'); 
+        }
+        
+        function handleRegisterMember() { 
+            const name = document.getElementById('regName').value.trim(); 
+            if(!name) return; 
+            CUSTOMER_DATA[document.getElementById('regPhone').value] = name; 
+            closeRegModal(); 
+            checkVIP(); 
+            updateDiscountUI(); 
+        }
+
         function calculateSplit() {
-            const price = parseFloat(document.getElementById('price').value) || 0;
+            const price = parseFloat(document.getElementById('price').value) || 0; 
             const qty = parseInt(document.getElementById('quantity').value) || 1;
             const total = (price * qty) * (isVIP ? 0.9 : 1);
+            
             document.getElementById('splitTotalDisplay').innerText = Math.round(total).toLocaleString() + " VNĐ";
+            
             const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
-            let qrRemains = total - cash; if(qrRemains < 0) qrRemains = 0; 
+            let qrRemains = total - cash; 
+            if(qrRemains < 0) qrRemains = 0; 
+            
             document.getElementById('qrAmountInput').value = Math.round(qrRemains);
         }
 
         function fillCash(type) {
-            const price = parseFloat(document.getElementById('price').value) || 0; const qty = parseInt(document.getElementById('quantity').value) || 1;
+            const price = parseFloat(document.getElementById('price').value) || 0; 
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
             const total = (price * qty) * (isVIP ? 0.9 : 1);
-            if (type === 1) document.getElementById('cashAmount').value = Math.round(total); else document.getElementById('cashAmount').value = 0;
+            
+            if (type === 1) {
+                document.getElementById('cashAmount').value = Math.round(total); 
+            } else {
+                document.getElementById('cashAmount').value = 0;
+            }
             calculateSplit();
         }
 
         function updateDiscountUI() {
-            const price = parseFloat(document.getElementById('price').value) || 0, qty = parseInt(document.getElementById('quantity').value) || 1;
+            const price = parseFloat(document.getElementById('price').value) || 0; 
             const div = document.getElementById('discountInfo');
-            if (isVIP && price > 0) div.classList.remove('hidden'); else div.classList.add('hidden'); calculateSplit();
+            if (isVIP && price > 0) div.classList.remove('hidden'); 
+            else div.classList.add('hidden'); 
+            
+            calculateSplit();
         }
 
         async function autoFillProduct() {
-            const code = document.getElementById('productId').value.trim().toUpperCase(), disp = document.getElementById('productNameDisplay');
+            const code = document.getElementById('productId').value.trim().toUpperCase();
+            const disp = document.getElementById('productNameDisplay');
             if (!code) { disp.classList.add('hidden'); return; }
-            try { const res = await fetch(`${api}/products/${code}`); if (res.ok) { const p = await res.json(); document.getElementById('price').value = p.price; disp.classList.remove('hidden'); disp.innerHTML = `${p.stock <= 0 ? '❌ HẾT HÀNG' : '✅ ' + p.name + ' [' + p.stock + ']'}`; updateDiscountUI(); } } catch (e) {}
+            try { 
+                const res = await fetch(`${api}/products/${code}`); 
+                if (res.ok) { 
+                    const p = await res.json(); 
+                    document.getElementById('price').value = p.price; 
+                    disp.classList.remove('hidden'); 
+                    disp.innerHTML = `${p.stock <= 0 ? '❌ HẾT HÀNG' : '✅ ' + p.name + ' [' + p.stock + ']'}`; 
+                    updateDiscountUI(); 
+                } 
+            } catch (e) {}
         }
 
-        // ĐƠN CHỜ
-        function updateHoldCount() { const countEl = document.getElementById('holdCount'); countEl.innerText = heldOrders.length; if(heldOrders.length > 0) countEl.classList.add('animate-pulse'); else countEl.classList.remove('animate-pulse'); }
-        function holdOrder() { const pId = document.getElementById('productId').value.trim(); const price = document.getElementById('price').value; if(!pId || !price) return; const order = { id: Date.now(), time: new Date().toLocaleTimeString(), phone: document.getElementById('customerPhone').value.trim(), productId: pId, price: price, quantity: document.getElementById('quantity').value }; heldOrders.push(order); localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); document.getElementById('productId').value = ''; document.getElementById('price').value = ''; document.getElementById('quantity').value = '1'; document.getElementById('customerPhone').value = ''; document.getElementById('cashAmount').value = ''; document.getElementById('productNameDisplay').classList.add('hidden'); checkVIP(); updateDiscountUI(); updateHoldCount(); }
-        function openHoldModal() { renderHoldOrders(); document.getElementById('holdModal').classList.remove('hidden'); }
-        function closeHoldModal() { document.getElementById('holdModal').classList.add('hidden'); }
-        function deleteHoldOrder(index) { if(confirm("Bạn muốn xóa đơn chờ này?")) { heldOrders.splice(index, 1); localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); updateHoldCount(); renderHoldOrders(); } }
-        function renderHoldOrders() { const container = document.getElementById('holdOrdersList'); if(heldOrders.length === 0) { container.innerHTML = `<p class="text-gray-500 text-center text-sm mt-4">Không có đơn chờ.</p>`; return; } container.innerHTML = heldOrders.map((o, index) => `<div class="bg-gray-900 p-4 rounded-xl flex justify-between items-center"><p class="text-yellow-500 font-bold">${o.productId} <span class="text-gray-400">x${o.quantity}</span></p><div class="flex gap-2"><button onclick="deleteHoldOrder(${index})" class="bg-red-900/50 hover:bg-red-600 text-red-400 px-3 py-2 rounded-lg text-xs transition-all">&times;</button><button onclick="restoreOrder(${index})" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-bold text-white shadow-md transition-all">Khôi phục</button></div></div>`).join(''); }
-        async function restoreOrder(index) { const o = heldOrders[index]; document.getElementById('customerPhone').value = o.phone; document.getElementById('productId').value = o.productId; document.getElementById('quantity').value = o.quantity; document.getElementById('price').value = o.price; checkVIP(); updateDiscountUI(); heldOrders.splice(index, 1); localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); updateHoldCount(); closeHoldModal(); autoFillProduct(); }
+        function updateHoldCount() { 
+            const countEl = document.getElementById('holdCount'); 
+            countEl.innerText = heldOrders.length; 
+            if(heldOrders.length > 0) countEl.classList.add('animate-pulse'); 
+            else countEl.classList.remove('animate-pulse'); 
+        }
 
-        function triggerPrint(areaId) { document.getElementById(areaId).classList.add('print-active'); window.print(); setTimeout(() => { document.getElementById(areaId).classList.remove('print-active'); }, 500); }
+        function holdOrder() { 
+            const pId = document.getElementById('productId').value.trim(); 
+            const price = document.getElementById('price').value; 
+            if(!pId || !price) return; 
+            
+            const order = { 
+                id: Date.now(), 
+                time: new Date().toLocaleTimeString(), 
+                phone: document.getElementById('customerPhone').value.trim(), 
+                productId: pId, 
+                price: price, 
+                quantity: document.getElementById('quantity').value 
+            }; 
+            
+            heldOrders.push(order); 
+            localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); 
+            
+            document.getElementById('productId').value = ''; 
+            document.getElementById('price').value = ''; 
+            document.getElementById('quantity').value = '1'; 
+            document.getElementById('customerPhone').value = ''; 
+            document.getElementById('cashAmount').value = ''; 
+            document.getElementById('productNameDisplay').classList.add('hidden'); 
+            
+            checkVIP(); 
+            updateDiscountUI(); 
+            updateHoldCount(); 
+        }
+
+        function openHoldModal() { 
+            renderHoldOrders(); 
+            document.getElementById('holdModal').classList.remove('hidden'); 
+        }
+        
+        function closeHoldModal() { 
+            document.getElementById('holdModal').classList.add('hidden'); 
+        }
+        
+        function deleteHoldOrder(index) { 
+            if(confirm("Bạn muốn xóa đơn chờ này?")) { 
+                heldOrders.splice(index, 1); 
+                localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); 
+                updateHoldCount(); 
+                renderHoldOrders(); 
+            } 
+        }
+        
+        function renderHoldOrders() { 
+            const container = document.getElementById('holdOrdersList'); 
+            if(heldOrders.length === 0) { 
+                container.innerHTML = `<p class="text-gray-500 text-center text-sm mt-4">Không có đơn chờ.</p>`; 
+                return; 
+            } 
+            container.innerHTML = heldOrders.map((o, index) => 
+                `<div class="bg-gray-900 p-4 rounded-xl flex justify-between items-center">
+                    <p class="text-yellow-500 font-bold">${o.productId} <span class="text-gray-400">x${o.quantity}</span></p>
+                    <div class="flex gap-2">
+                        <button onclick="deleteHoldOrder(${index})" class="bg-red-900/50 hover:bg-red-600 text-red-400 px-3 py-2 rounded-lg text-xs transition-all">&times;</button>
+                        <button onclick="restoreOrder(${index})" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-bold text-white shadow-md transition-all">Khôi phục</button>
+                    </div>
+                </div>`
+            ).join(''); 
+        }
+        
+        async function restoreOrder(index) { 
+            const o = heldOrders[index]; 
+            document.getElementById('customerPhone').value = o.phone; 
+            document.getElementById('productId').value = o.productId; 
+            document.getElementById('quantity').value = o.quantity; 
+            document.getElementById('price').value = o.price; 
+            
+            checkVIP(); 
+            updateDiscountUI(); 
+            
+            heldOrders.splice(index, 1); 
+            localStorage.setItem('ezbolts_held_orders', JSON.stringify(heldOrders)); 
+            
+            updateHoldCount(); 
+            closeHoldModal(); 
+            autoFillProduct(); 
+        }
+
+        function triggerPrint(areaId) { 
+            document.getElementById(areaId).classList.add('print-active'); 
+            window.print(); 
+            setTimeout(() => { document.getElementById(areaId).classList.remove('print-active'); }, 500); 
+        }
 
         async function sellProduct() {
-            const pId = document.getElementById('productId').value.trim().toUpperCase(), price = parseFloat(document.getElementById('price').value), qty = parseInt(document.getElementById('quantity').value) || 1;
-            const nameDisp = document.getElementById('productNameDisplay').innerText, phone = document.getElementById('customerPhone').value.trim();
-            if(!pId || isNaN(price)) { alert("Nhập SP trước!"); return; }
+            const pId = document.getElementById('productId').value.trim().toUpperCase();
+            const price = parseFloat(document.getElementById('price').value);
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            const nameDisp = document.getElementById('productNameDisplay').innerText;
+            const phone = document.getElementById('customerPhone').value.trim();
+            
+            if(!pId || isNaN(price)) { 
+                alert("Vui lòng nhập Sản Phẩm và Giá tiền hợp lệ!"); 
+                return; 
+            }
             
             const total = (price * qty) * (isVIP ? 0.9 : 1);
             const cashPaid = parseFloat(document.getElementById('cashAmount').value) || 0;
-            let qrPaid = total - cashPaid; if (qrPaid < 0) qrPaid = 0;
+            let qrPaid = total - cashPaid; 
+            if (qrPaid < 0) qrPaid = 0;
 
-            const cust = CUSTOMER_DATA[phone] || "Khách lẻ", name = nameDisp.split('[')[0].replace('✅', '').trim();
-            window.pendingSale = { pId, qty, finalTotal: Math.round(total), unitPrice: price, rawTotal: price*qty, discount: Math.round(price*qty*0.1), custName: cust, cleanName: name, cashPaid: Math.round(cashPaid), qrPaid: Math.round(qrPaid) };
+            const cust = CUSTOMER_DATA[phone] || "Khách lẻ";
+            const name = nameDisp.split('[')[0].replace('✅', '').trim();
+            
+            window.pendingSale = { 
+                pId, qty, 
+                finalTotal: Math.round(total), 
+                unitPrice: price, 
+                rawTotal: price*qty, 
+                discount: Math.round(price*qty*0.1), 
+                custName: cust, 
+                cleanName: name, 
+                cashPaid: Math.round(cashPaid), 
+                qrPaid: Math.round(qrPaid) 
+            };
             
             if (qrPaid > 0) {
                 document.getElementById('qrImage').src = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${Math.round(qrPaid)}&addInfo=EZB-${pId}`;
                 document.getElementById('qrAmount').innerText = Math.round(qrPaid).toLocaleString() + " VNĐ";
-                document.getElementById('qrCustomerName').innerText = `KH: ${cust}`; document.getElementById('qrModal').classList.remove('hidden');
+                document.getElementById('qrCustomerName').innerText = `KH: ${cust}`; 
+                document.getElementById('qrModal').classList.remove('hidden');
             } else { 
-                if(confirm(`Khách trả tiền mặt: ${Math.round(cashPaid).toLocaleString()}đ?`)) confirmPaymentSuccess(); 
+                if(confirm(`Khách trả đủ tiền mặt: ${Math.round(cashPaid).toLocaleString()}đ?`)) {
+                    confirmPaymentSuccess(); 
+                }
             }
         }
 
-        // BÁN HÀNG OFFLINE & XỬ LÝ THANH TOÁN (ĐÃ FIX LỖI IN)
         async function confirmPaymentSuccess() {
-            const s = window.pendingSale; let isSuccess = false, savedOffline = false;
+            const s = window.pendingSale; 
+            let isSuccess = false;
+            let savedOffline = false;
 
             if (navigator.onLine) {
                 try {
-                    const res = await fetch(`${api}/${deskId}/sell`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ productId: s.pId, quantity: parseInt(s.qty), totalPrice: Math.round(s.finalTotal) }) });
-                    if(res.ok) isSuccess = true; else { alert("❌ Quầy đang đóng!"); return; }
-                } catch (e) { queueOfflineSale(s); savedOffline = true; isSuccess = true; }
-            } else { queueOfflineSale(s); savedOffline = true; isSuccess = true; }
+                    const res = await fetch(`${api}/${deskId}/sell`, { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({ 
+                            productId: s.pId, 
+                            quantity: parseInt(s.qty), 
+                            totalPrice: Math.round(s.finalTotal) 
+                        }) 
+                    });
+                    if(res.ok) isSuccess = true; 
+                    else { alert("❌ Quầy đang đóng! Vui lòng Mở Quầy trước."); return; }
+                } catch (e) { 
+                    queueOfflineSale(s); 
+                    savedOffline = true; 
+                    isSuccess = true; 
+                }
+            } else { 
+                queueOfflineSale(s); 
+                savedOffline = true; 
+                isSuccess = true; 
+            }
 
             if(isSuccess) {
                 document.getElementById('soundTing').play();
+                
                 document.getElementById('prDate').innerText = new Date().toLocaleString();
                 document.getElementById('prStaff').innerText = currentUser;
                 document.getElementById('prCustomer').innerText = s.custName;
@@ -383,9 +624,15 @@
                 document.getElementById('prTotal').innerText = Math.round(s.finalTotal).toLocaleString() + " VNĐ";
                 
                 document.getElementById('qrModal').classList.add('hidden');
-                document.getElementById('cashAmount').value = '';
                 
-                // Gọi in hóa đơn TRƯỚC KHI trình duyệt bị chặn
+                document.getElementById('productId').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('customerPhone').value = '';
+                document.getElementById('cashAmount').value = '';
+                document.getElementById('productNameDisplay').classList.add('hidden');
+                checkVIP();
+                updateDiscountUI();
+                
                 triggerPrint('receiptPrintArea');
                 
                 setTimeout(() => { 
@@ -393,51 +640,163 @@
                         alert("📡 Đã lưu hóa đơn Offline!");
                         let curBal = parseFloat(document.getElementById('balance').innerText.replace(/\D/g, '')) || 0;
                         document.getElementById('balance').innerText = (curBal + Math.round(s.finalTotal)).toLocaleString() + " VNĐ";
-                    } else { updateBalance(); }
+                    } else { 
+                        updateBalance(); 
+                    }
                 }, 500);
             }
         }
 
-        function queueOfflineSale(sale) { offlineQueue.push(sale); localStorage.setItem('ezbolts_offline_queue', JSON.stringify(offlineQueue)); checkNetworkStatus(); }
+        // OFFLINE SYNC
+        function queueOfflineSale(sale) { 
+            offlineQueue.push(sale); 
+            localStorage.setItem('ezbolts_offline_queue', JSON.stringify(offlineQueue)); 
+            checkNetworkStatus(); 
+        }
+        
         async function syncOfflineData() {
             if (offlineQueue.length === 0 || !navigator.onLine) return;
             let successCount = 0;
             for (let i = offlineQueue.length - 1; i >= 0; i--) {
                 const s = offlineQueue[i];
                 try {
-                    const res = await fetch(`${api}/${deskId}/sell`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ productId: s.pId, quantity: parseInt(s.qty), totalPrice: Math.round(s.finalTotal) }) });
-                    if (res.ok) { offlineQueue.splice(i, 1); successCount++; }
+                    const res = await fetch(`${api}/${deskId}/sell`, { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({ productId: s.pId, quantity: parseInt(s.qty), totalPrice: Math.round(s.finalTotal) }) 
+                    });
+                    if (res.ok) { 
+                        offlineQueue.splice(i, 1); 
+                        successCount++; 
+                    }
                 } catch(e) {}
             }
-            localStorage.setItem('ezbolts_offline_queue', JSON.stringify(offlineQueue)); checkNetworkStatus();
-            if (successCount > 0) { alert(`🎉 Đã đồng bộ ${successCount} hóa đơn Offline!`); updateBalance(); }
-        }
-
-        window.addEventListener('online', () => { checkNetworkStatus(); syncOfflineData(); }); window.addEventListener('offline', checkNetworkStatus);
-
-        function checkNetworkStatus() {
-            const el = document.getElementById('networkStatus'); const bg = document.getElementById('offlineWarningBg');
-            if (navigator.onLine) {
-                el.className = "bg-green-600 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase flex items-center gap-1.5 shadow-md";
-                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> ONLINE'; bg.classList.add('hidden');
-            } else {
-                el.className = "bg-red-600 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase flex items-center gap-1.5 shadow-md";
-                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-white"></span> OFFLINE (${offlineQueue.length})`; bg.classList.remove('hidden');
+            localStorage.setItem('ezbolts_offline_queue', JSON.stringify(offlineQueue)); 
+            checkNetworkStatus();
+            
+            if (successCount > 0) { 
+                alert(`🎉 Đã đồng bộ ${successCount} hóa đơn Offline!`); 
+                updateBalance(); 
             }
         }
 
-        async function handleRefund() { const pId = document.getElementById('refundProductId').value.trim().toUpperCase(), amount = document.getElementById('refundAmount').value, reason = document.getElementById('refundReason').value || "Hoàn hàng"; if(!pId || !amount) return; const res = await fetch(`${api}/${deskId}/refund`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ productId: pId, amount: parseFloat(amount), reason: reason + ` (${currentUser})` }) }); if(res.ok) { alert("Xong!"); updateBalance(); document.getElementById('refundProductId').value=""; document.getElementById('refundAmount').value=""; document.getElementById('refundReason').value=""; } }
-        async function handleWithdraw() { const amount = document.getElementById('withdrawAmount').value; if(!amount) return; const res = await fetch(`${api}/${deskId}/withdraw`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ amount: parseFloat(amount), reason: `Rút bởi ${currentUser}` }) }); if(res.ok) { alert("Xong!"); updateBalance(); document.getElementById('withdrawAmount').value=""; } }
+        window.addEventListener('online', () => { checkNetworkStatus(); syncOfflineData(); }); 
+        window.addEventListener('offline', checkNetworkStatus);
+
+        function checkNetworkStatus() {
+            const el = document.getElementById('networkStatus'); 
+            const bg = document.getElementById('offlineWarningBg');
+            if (navigator.onLine) {
+                el.className = "bg-green-600 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase flex items-center gap-1.5 shadow-md";
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> ONLINE'; 
+                bg.classList.add('hidden');
+            } else {
+                el.className = "bg-red-600 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase flex items-center gap-1.5 shadow-md";
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-white"></span> OFFLINE (${offlineQueue.length})`; 
+                bg.classList.remove('hidden');
+            }
+        }
+
+        // CÁC HÀM XỬ LÝ KHÁC
+        async function handleRefund() { 
+            const pId = document.getElementById('refundProductId').value.trim().toUpperCase();
+            const amount = document.getElementById('refundAmount').value; 
+            if(!pId || !amount) return; 
+            
+            const res = await fetch(`${api}/${deskId}/refund`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ productId: pId, amount: parseFloat(amount), reason: `Hoàn hàng (${currentUser})` }) 
+            }); 
+            
+            if(res.ok) { 
+                alert("Xong!"); 
+                updateBalance(); 
+                document.getElementById('refundProductId').value=""; 
+                document.getElementById('refundAmount').value=""; 
+            } 
+        }
         
-        async function updateBalance() { const btn = document.getElementById('btnRefresh'); if(btn) { btn.innerHTML = "⌛ ĐANG TẢI..."; btn.style.opacity = "0.5"; } try { const res = await fetch(`${api}/${deskId}/balance`); const d = await res.json(); document.getElementById('balance').style.opacity = "0"; setTimeout(() => { document.getElementById('balance').innerText = d.currentBalance.toLocaleString() + " VNĐ"; document.getElementById('balance').style.opacity = "1"; }, 200); loadHistory(); loadReportChart(); } catch (e) {} finally { if(btn) { btn.innerHTML = "🔄 Làm mới dữ liệu"; btn.style.opacity = "1"; } } }
-        async function loadReportChart() { try { const res = await fetch(`${api}/${deskId}/report`); const d = await res.json(); document.getElementById('lblStarting').innerText = d.startingBalance.toLocaleString(); document.getElementById('lblRevenue').innerText = d.totalRevenue.toLocaleString(); document.getElementById('btnOpenDesk').classList.toggle('hidden', d.isOpen); document.getElementById('btnCloseDesk').classList.toggle('hidden', !d.isOpen); document.getElementById('btnMainCheckout').disabled = !d.isOpen; document.getElementById('btnMainCheckout').style.opacity = d.isOpen ? "1" : "0.5"; const ctx = document.getElementById('reportChart').getContext('2d'); if (myChartInstance) myChartInstance.destroy(); myChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Vốn', 'Thu'], datasets: [{ data: [d.startingBalance, d.totalRevenue], backgroundColor: ['#3b82f6', '#10b981'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } }); } catch (e) {} }
+        async function handleWithdraw() { 
+            const amount = document.getElementById('withdrawAmount').value; 
+            if(!amount) return; 
+            
+            const res = await fetch(`${api}/${deskId}/withdraw`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ amount: parseFloat(amount), reason: `Rút bởi ${currentUser}` }) 
+            }); 
+            
+            if(res.ok) { 
+                alert("Xong!"); 
+                updateBalance(); 
+                document.getElementById('withdrawAmount').value=""; 
+            } 
+        }
         
-        // MỞ QUẦY GỌI THẲNG API (LÀM TRÒN 500K)
-        async function openCashDesk() { try { const res = await fetch(`${api}/${deskId}/open`, { method: 'POST' }); if(res.ok) { setTimeout(() => { updateBalance(); alert("🔓 Quầy đã mở thành công!"); }, 400); } } catch (e) { alert("Lỗi kết nối server!"); } }
+        async function updateBalance() { 
+            const btn = document.getElementById('btnRefresh'); 
+            if(btn) { btn.style.opacity = "0.5"; } 
+            
+            try { 
+                const res = await fetch(`${api}/${deskId}/balance`); 
+                const d = await res.json(); 
+                
+                document.getElementById('balance').style.opacity = "0"; 
+                setTimeout(() => { 
+                    document.getElementById('balance').innerText = d.currentBalance.toLocaleString() + " VNĐ"; 
+                    document.getElementById('balance').style.opacity = "1"; 
+                }, 200); 
+                
+                loadHistory(); 
+                loadReportChart(); 
+            } catch (e) {} finally { 
+                if(btn) { btn.style.opacity = "1"; } 
+            } 
+        }
         
-        // Z-REPORT (ĐÃ FIX LỖI ĐỌC SAI SỐ 500K)
+        async function loadReportChart() { 
+            try { 
+                const res = await fetch(`${api}/${deskId}/report`); 
+                const d = await res.json(); 
+                
+                document.getElementById('lblStarting').innerText = d.startingBalance.toLocaleString(); 
+                document.getElementById('lblRevenue').innerText = d.totalRevenue.toLocaleString(); 
+                
+                document.getElementById('btnOpenDesk').classList.toggle('hidden', d.isOpen); 
+                document.getElementById('btnCloseDesk').classList.toggle('hidden', !d.isOpen); 
+                
+                const ctx = document.getElementById('reportChart').getContext('2d'); 
+                if (myChartInstance) myChartInstance.destroy(); 
+                
+                myChartInstance = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['Vốn', 'Thu'], 
+                        datasets: [{ data: [d.startingBalance, d.totalRevenue], backgroundColor: ['#3b82f6', '#10b981'], borderWidth: 0 }] 
+                    }, 
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } 
+                }); 
+            } catch (e) {} 
+        }
+        
+        async function openCashDesk() { 
+            try { 
+                const res = await fetch(`${api}/${deskId}/open`, { method: 'POST' }); 
+                if(res.ok) { 
+                    setTimeout(() => { 
+                        updateBalance(); 
+                        alert("🔓 Quầy đã mở thành công!"); 
+                    }, 400); 
+                } 
+            } catch (e) { alert("Lỗi kết nối server!"); } 
+        }
+        
         function preCloseCashDesk() { 
-            if(offlineQueue.length > 0) { alert("CẢNH BÁO: Còn đơn Offline. Vui lòng kết nối mạng để đồng bộ trước khi chốt ca!"); return; } 
+            if(offlineQueue.length > 0) { 
+                alert("CẢNH BÁO: Còn đơn Offline. Vui lòng kết nối mạng để đồng bộ trước khi chốt ca!"); 
+                return; 
+            } 
             
             let totalHoan = 0, totalRut = 0; 
             globalEventData.forEach(e => { 
@@ -446,10 +805,8 @@
                 if (e.eventType === "ProductRefundedEvent") totalHoan += info.RefundAmount; 
             }); 
             
-            // Xóa sạch các dấu phân cách để cộng trừ chính xác
             const von = parseInt(document.getElementById('lblStarting').innerText.replace(/\D/g, '')) || 0; 
             const totalThu = parseInt(document.getElementById('lblRevenue').innerText.replace(/\D/g, '')) || 0; 
-            
             const expectedBalance = von + totalThu - totalHoan - totalRut; 
             
             document.getElementById('zStaff').innerText = currentUser; 
@@ -462,9 +819,10 @@
             document.getElementById('zReportModal').classList.remove('hidden'); 
         }
 
-        function closeZReportModal() { document.getElementById('zReportModal').classList.add('hidden'); }
+        function closeZReportModal() { 
+            document.getElementById('zReportModal').classList.add('hidden'); 
+        }
         
-        // FIX LỖI KHÔNG IN ĐƯỢC Z-REPORT 
         async function confirmZReportClose() { 
             closeZReportModal(); 
             document.getElementById('pzDate').innerText = new Date().toLocaleString(); 
@@ -475,18 +833,44 @@
             document.getElementById('pzRut').innerText = document.getElementById('zRut').innerText; 
             document.getElementById('pzThucTe').innerText = document.getElementById('zThucTe').innerText; 
             
-            // Gọi lệnh in ngay trước khi Chrome chặn
             triggerPrint('zReportPrintArea'); 
             
             try { 
                 await fetch(`${api}/${deskId}/close`, { method: 'POST' }); 
                 updateBalance(); 
-            } catch(e) { console.log("Lỗi khi kết ca lên Server!"); } 
+            } catch(e) { } 
         }
         
-        async function loadHistory() { try { const res = await fetch(`${api}/${deskId}/history`); const d = await res.json(); globalEventData = d; document.getElementById('history').innerHTML = d.map(e => { const info = JSON.parse(e.eventData); let t = ""; if (e.eventType === "ProductSoldEvent") t = `Bán: ${info.ProductId} | +${info.TotalPrice.toLocaleString()}đ`; else if (e.eventType === "CashDeskOpenedEvent") t = `MỞ CA: +${info.StartingBalance.toLocaleString()}đ`; else if (e.eventType === "CashWithdrawnEvent") t = `RÚT: -${info.Amount.toLocaleString()}đ`; else if (e.eventType === "ProductRefundedEvent") t = `HOÀN: -${info.RefundAmount.toLocaleString()}đ`; return `<div class="p-3 uppercase"><p class="text-gray-300 font-bold">${t || e.eventType}</p><p class="text-[9px] text-gray-500">${new Date(e.timestamp).toLocaleString()}</p></div>`; }).join(''); } catch (e) {} }
+        async function loadHistory() { 
+            try { 
+                const res = await fetch(`${api}/${deskId}/history`); 
+                const d = await res.json(); 
+                globalEventData = d; 
+                
+                document.getElementById('history').innerHTML = d.map(e => { 
+                    const info = JSON.parse(e.eventData); 
+                    let t = ""; 
+                    if (e.eventType === "ProductSoldEvent") t = `Bán: ${info.ProductId} | +${info.TotalPrice.toLocaleString()}đ`; 
+                    else if (e.eventType === "CashDeskOpenedEvent") t = `MỞ CA: +${info.StartingBalance.toLocaleString()}đ`; 
+                    else if (e.eventType === "CashWithdrawnEvent") t = `RÚT: -${info.Amount.toLocaleString()}đ`; 
+                    else if (e.eventType === "ProductRefundedEvent") t = `HOÀN: -${info.RefundAmount.toLocaleString()}đ`; 
+                    return `<div class="p-3 uppercase"><p class="text-gray-300 font-bold">${t || e.eventType}</p><p class="text-[9px] text-gray-500">${new Date(e.timestamp).toLocaleString()}</p></div>`; 
+                }).join(''); 
+            } catch (e) {} 
+        }
+        
         function closeQRModal() { document.getElementById('qrModal').classList.add('hidden'); }
-        function exportToCSV() { let csv = "\uFEFFID,Loại,Thời gian,Dữ liệu\n"; globalEventData.forEach(e => { csv += `${e.id},${e.eventType},"${new Date(e.timestamp).toLocaleString()}","${e.eventData.replace(/"/g, '""')}"\n`; }); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `EZBolts_Report.csv`; link.click(); }
+        
+        function exportToCSV() { 
+            let csv = "\uFEFFID,Loại,Thời gian,Dữ liệu\n"; 
+            globalEventData.forEach(e => { 
+                csv += `${e.id},${e.eventType},"${new Date(e.timestamp).toLocaleString()}","${e.eventData.replace(/"/g, '""')}"\n`; 
+            }); 
+            const link = document.createElement("a"); 
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); 
+            link.download = `EZBolts_Report.csv`; 
+            link.click(); 
+        }
         
         // Khởi động hệ thống
         updateHoldCount(); 

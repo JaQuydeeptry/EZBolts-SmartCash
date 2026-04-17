@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CashDesk.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ebdf6eb7b35b4ab437ae953378b9c9597eb77852")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dfe88e4eeafbcb4428db28ea34c31ecc35376a9d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CashDesk.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CashDesk.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
